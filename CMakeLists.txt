@@ -67,6 +67,7 @@ set(GST_LIBRARY_DIRS
     ${GLIB2_LIBRARY_DIRS}
     ${GST_BASE_LIBRARY_DIRS}
     ${GST_CHECK_LIBRARY_DIRS}
+    ${GST_VIDEO_LIBRARY_DIRS}
     ${GST_LIBRARY_DIRS}
 )
 
@@ -98,23 +99,26 @@ set(multipartuploader_SOURCES
 
 include_directories(${GST_INCLUDE_DIRS})
 link_directories(${GST_LIBRARY_DIRS})
+link_directories(${AWS_SDK_PATH}/build/aws-cpp-sdk-core/)
+link_directories(${AWS_SDK_PATH}/build/aws-cpp-sdk-sts/)
+link_directories(${AWS_SDK_PATH}/build/aws-cpp-sdk-s3/)
 
 add_library(gstawscredentials STATIC ${gstawscredentials_SOURCES})
 target_link_libraries(gstawscredentials ${S3_LIBRARIES})
-target_link_libraries(gstawscredentials ${AWS_SDK_PATH}/build/aws-cpp-sdk-core/libaws-cpp-sdk-core.so)
-target_link_libraries(gstawscredentials ${AWS_SDK_PATH}/build/aws-cpp-sdk-sts/libaws-cpp-sdk-sts.so)
+target_link_libraries(gstawscredentials aws-cpp-sdk-core)
+target_link_libraries(gstawscredentials aws-cpp-sdk-sts)
 
 add_library(multipartuploader STATIC ${multipartuploader_SOURCES})
 target_link_libraries(multipartuploader ${S3_LIBRARIES})
-target_link_libraries(multipartuploader ${AWS_SDK_PATH}/build/aws-cpp-sdk-core/libaws-cpp-sdk-core.so)
-target_link_libraries(multipartuploader ${AWS_SDK_PATH}/build/aws-cpp-sdk-s3/libaws-cpp-sdk-s3.so)
+target_link_libraries(multipartuploader aws-cpp-sdk-core)
+target_link_libraries(multipartuploader aws-cpp-sdk-s3)
 
 add_library(gsts3elements MODULE ${S3_SOURCES})
 target_link_libraries(gsts3elements ${S3_LIBRARIES} gstawscredentials multipartuploader)
 
-file(COPY ${AWS_SDK_PATH}/build/aws-cpp-sdk-core/libaws-cpp-sdk-core.so
-    DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY ${AWS_SDK_PATH}/build/aws-cpp-sdk-s3/libaws-cpp-sdk-s3.so
-    DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY ${AWS_SDK_PATH}/build/aws-cpp-sdk-sts/libaws-cpp-sdk-sts.so
-    DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(GLOB LIB_AWS_SDK_CORE_LIB "${AWS_SDK_PATH}/build/aws-cpp-sdk-core/libaws-cpp-sdk-core.*")
+file(COPY ${LIB_AWS_SDK_CORE_LIB} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(GLOB LIB_AWS_SDK_S3_LIB "${AWS_SDK_PATH}/build/aws-cpp-sdk-s3/libaws-cpp-sdk-s3.*")
+file(COPY ${LIB_AWS_SDK_S3_LIB} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(GLOB LIB_AWS_SDK_STS_LIB "${AWS_SDK_PATH}/build/aws-cpp-sdk-sts/libaws-cpp-sdk-sts.*")
+file(COPY ${LIB_AWS_SDK_STS_LIB} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
